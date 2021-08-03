@@ -53,11 +53,11 @@ elseif (${PLATFORM} MATCHES "Raspberry Pi")
     
     add_definitions(-D_DEFAULT_SOURCE)
     
-    find_library(GLESV2 brcmGLESv2 HINTS /opt/vc/lib)
-    find_library(EGL brcmEGL HINTS /opt/vc/lib)
-    find_library(BCMHOST bcm_host HINTS /opt/vc/lib)
-    include_directories(/opt/vc/include /opt/vc/include/interface/vmcs_host/linux /opt/vc/include/interface/vcos/pthreads)
-    link_directories(/opt/vc/lib)
+    find_library(GLESV2 brcmGLESv2 HINTS /usr/pkg/lib)
+    find_library(EGL brcmEGL HINTS /usr/pkg/lib)
+    find_library(BCMHOST bcm_host HINTS /usr/pkg/lib)
+    include_directories(/usr/pkg/include /usr/pkg/include/interface/vmcs_host/linux /usr/pkgvc/include/interface/vcos/pthreads)
+    link_directories(/usr/pkg/lib)
     set(LIBS_PRIVATE ${GLESV2} ${EGL} ${BCMHOST} pthread rt m dl)
 
 elseif (${PLATFORM} MATCHES "DRM")
