@@ -237,9 +237,15 @@
     #include <dirent.h>                 // POSIX directory browsing
 
     #include <sys/ioctl.h>              // Required for: ioctl() - UNIX System call for device-specific input/output operations
+
+#if defined(__linux__)
     #include <linux/kd.h>               // Linux: KDSKBMODE, K_MEDIUMRAM constants definition
     #include <linux/input.h>            // Linux: Keycodes constants definition (KEY_A, ...)
     #include <linux/joystick.h>         // Linux: Joystick support library
+#endif
+#if defined(__NetBSD__)
+	// XXX need to link against usbhid or ??
+#endif
 
 #if defined(PLATFORM_RPI)
     #include "bcm_host.h"               // Raspberry Pi VideoCore IV access functions
@@ -270,8 +276,14 @@
 #if defined(PLATFORM_RPI) || defined(PLATFORM_DRM)
     #define USE_LAST_TOUCH_DEVICE       // When multiple touchscreens are connected, only use the one with the highest event<N> number
 
+#if defined(__linux__)
     #define DEFAULT_GAMEPAD_DEV    "/dev/input/js"  // Gamepad input (base dev for all gamepads: js0, js1, ...)
     #define DEFAULT_EVDEV_PATH       "/dev/input/"  // Path to the linux input events
+#endif
+#if defined(__NetBSD__)
+    #define DEFAULT_GAMEPAD_DEV   "/dev/XXXFIXME"
+    #define DEFAULT_EVDEV_PATH    "/dev/XXXFIXME"
+#endif
 #endif
 
 #ifndef MAX_FILEPATH_LENGTH
@@ -3268,7 +3280,12 @@ const char *GetGamepadName(int gamepad)
     else return NULL;
 #endif
 #if defined(PLATFORM_RPI) || defined(PLATFORM_DRM)
+#if defined(__linux__)
     if (CORE.Input.Gamepad.ready[gamepad]) ioctl(CORE.Input.Gamepad.streamId[gamepad], JSIOCGNAME(64), &CORE.Input.Gamepad.name);
+#endif
+#if defined(__NetBSD__)
+	// XXX FIXME
+#endif
     return CORE.Input.Gamepad.name;
 #endif
     return NULL;
@@ -3279,7 +3296,12 @@ int GetGamepadAxisCount(int gamepad)
 {
 #if defined(PLATFORM_RPI) || defined(PLATFORM_DRM)
     int axisCount = 0;
+#if defined(__linux__)
     if (CORE.Input.Gamepad.ready[gamepad]) ioctl(CORE.Input.Gamepad.streamId[gamepad], JSIOCGAXES, &axisCount);
+#endif
+#if defined(__NetBSD__)
+	// XXX FIXME
+#endif
     CORE.Input.Gamepad.axisCount = axisCount;
 #endif
 
@@ -5444,7 +5466,13 @@ static void InitKeyboard(void)
     fcntl(STDIN_FILENO, F_SETFL, CORE.Input.Keyboard.defaultFileFlags | O_NONBLOCK); // F_SETFL: Set the file status flags to the value specified
 
     // NOTE: If ioctl() returns -1, it means the call failed for some reason (error code set in errno)
+#if defined(__linux__)
     int result = ioctl(STDIN_FILENO, KDGKBMODE, &CORE.Input.Keyboard.defaultMode);
+#endif
+#if defined(__NetBSD__)
+	int result = 0;
+	// XXX FIXME
+#endif
 
     // In case of failure, it could mean a remote keyboard is used (SSH)
     if (result < 0) TRACELOG(LOG_WARNING, "RPI: Failed to change keyboard mode, an SSH keyboard is probably used");
@@ -5455,7 +5483,13 @@ static void InitKeyboard(void)
         //    - keycodes (K_MEDIUMRAW)
         //    - ASCII chars (K_XLATE)
         //    - UNICODE chars (K_UNICODE)
+
+#if defined(__linux__)
         ioctl(STDIN_FILENO, KDSKBMODE, K_XLATE);  // ASCII chars
+#endif
+#if defined(__NetBSD__)
+	// XXX FIXME
+#endif
     }
 
     // Register keyboard restore when program finishes
@@ -5465,12 +5499,17 @@ static void InitKeyboard(void)
 // Restore default keyboard input
 static void RestoreKeyboard(void)
 {
+#if defined(__linux__)
     // Reset to default keyboard settings
     tcsetattr(STDIN_FILENO, TCSANOW, &CORE.Input.Keyboard.defaultSettings);
 
     // Reconfigure keyboard to default mode
     fcntl(STDIN_FILENO, F_SETFL, CORE.Input.Keyboard.defaultFileFlags);
     ioctl(STDIN_FILENO, KDSKBMODE, CORE.Input.Keyboard.defaultMode);
+#endif
+#if defined(__NetBSD__)
+	// XXX FIXME
+#endif
 }
 
 #if defined(SUPPORT_SSH_KEYBOARD_RPI)
@@ -5628,6 +5667,7 @@ static void InitEvdevInput(void)
 // Identifies a input device and configures it for use if appropriate
 static void ConfigureEvdevDevice(char *device)
 {
+#if defined(__linux__)
     #define BITS_PER_LONG   (8*sizeof(long))
     #define NBITS(x)        ((((x) - 1)/BITS_PER_LONG) + 1)
     #define OFF(x)          ((x)%BITS_PER_LONG)
@@ -5825,10 +5865,16 @@ static void ConfigureEvdevDevice(char *device)
     }
     else close(fd);  // We are not interested in this device
     //-------------------------------------------------------------------------------------------------------
+#endif // __linux__
+
+#if defined(__NetBSD__)
+	// XXX FIXME
+#endif
 }
 
 static void PollKeyboardEvents(void)
 {
+#if defined(__linux__)
     // Scancode to keycode mapping for US keyboards
     // TODO: Probably replace this with a keymap from the X11 to get the correct regional map for the keyboard:
     // Currently non US keyboards will have the wrong mapping for some keys
@@ -5900,11 +5946,17 @@ static void PollKeyboardEvents(void)
             }
         }
     }
+#endif // __linux__
+
+#if defined(__NetBSD__)
+	// XXX FIXME
+#endif
 }
 
 // Input device events reading thread
 static void *EventThread(void *arg)
 {
+#if defined(__linux__)
     struct input_event event = { 0 };
     InputEventWorker *worker = (InputEventWorker *)arg;
 
@@ -6088,6 +6140,11 @@ static void *EventThread(void *arg)
     close(worker->fd);
 
     return NULL;
+#endif // __linux__
+
+#if defined(__NetBSD__)
+	// XXX FIXME
+#endif
 }
 
 // Initialize gamepad system
