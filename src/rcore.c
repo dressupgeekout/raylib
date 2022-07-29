@@ -3573,9 +3573,6 @@ const char *GetGamepadName(int gamepad)
     if (CORE.Input.Gamepad.ready[gamepad]) ioctl(CORE.Input.Gamepad.streamId[gamepad], JSIOCGNAME(64), &CORE.Input.Gamepad.name[gamepad]);
     return CORE.Input.Gamepad.name[gamepad];
 #endif
-#if defined(__NetBSD__)
-	// XXX FIXME
-#endif
 #if defined(PLATFORM_WEB)
     return CORE.Input.Gamepad.name[gamepad];
 #endif
@@ -3810,6 +3807,7 @@ Vector2 GetMouseWheelMoveV(void)
 #if defined(PLATFORM_ANDROID)
     return (Vector2){ 0.0f, 0.0f };
 #endif
+
 #if defined(PLATFORM_WEB)
     Vector2 result = CORE.Input.Mouse.currentWheelMove;
     result.x /= 100.0f;
