@@ -2,12 +2,14 @@
 *
 *   raylib [core] example - split screen
 *
-*   This example has been created using raylib 3.7 (www.raylib.com)
-*   raylib is licensed under an unmodified zlib/libpng license (View raylib.h for details)
+*   Example originally created with raylib 3.7, last time updated with raylib 4.0
 *
 *   Example contributed by Jeffery Myers (@JeffM2501) and reviewed by Ramon Santamaria (@raysan5)
 *
-*   Copyright (c) 2021 Jeffery Myers (@JeffM2501)
+*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
+*   BSD-like license that allows static linking with closed source software
+*
+*   Copyright (c) 2021-2022 Jeffery Myers (@JeffM2501)
 *
 ********************************************************************************************/
 
@@ -22,7 +24,7 @@ void DrawScene(void)
 {
     int count = 5;
     float spacing = 4;
-    
+
     // Grid of cube trees on a plane to make a "world"
     DrawPlane((Vector3){ 0, 0, 0 }, (Vector2){ 50, 50 }, BEIGE); // Simple world plane
 
@@ -40,6 +42,9 @@ void DrawScene(void)
     DrawCube(cameraPlayer2.position, 1, 1, 1, BLUE);
 }
 
+//------------------------------------------------------------------------------------
+// Program main entry point
+//------------------------------------------------------------------------------------
 int main(void)
 {
     // Initialization
@@ -73,10 +78,10 @@ int main(void)
     cameraPlayer2.position.y = 3.0f;
 
     RenderTexture screenPlayer2 = LoadRenderTexture(screenWidth / 2, screenHeight);
-   
+
     // Build a flipped rectangle the size of the split view to use for drawing later
     Rectangle splitScreenRect = { 0.0f, 0.0f, (float)screenPlayer1.texture.width, (float)-screenPlayer1.texture.height };
-    
+
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
@@ -122,7 +127,7 @@ int main(void)
             BeginMode3D(cameraPlayer1);
                 DrawScene();
             EndMode3D();
-            DrawText("PLAYER1 W/S to move", 0, 0, 20, RED);
+            DrawText("PLAYER1 W/S to move", 10, 10, 20, RED);
         EndTextureMode();
 
         // Draw Player2 view to the render texture
@@ -131,7 +136,7 @@ int main(void)
             BeginMode3D(cameraPlayer2);
                 DrawScene();
             EndMode3D();
-            DrawText("PLAYER2 UP/DOWN to move", 0, 0, 20, BLUE);
+            DrawText("PLAYER2 UP/DOWN to move", 10, 10, 20, BLUE);
         EndTextureMode();
 
         // Draw both views render textures to the screen side by side
@@ -147,7 +152,7 @@ int main(void)
     UnloadRenderTexture(screenPlayer1); // Unload render texture
     UnloadRenderTexture(screenPlayer2); // Unload render texture
     UnloadTexture(textureGrid);         // Unload texture
-    
+
     CloseWindow();                      // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 

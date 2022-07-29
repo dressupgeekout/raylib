@@ -1,25 +1,28 @@
 /*******************************************************************************************
 *
-*   raylib [text] example - Draw 2D text in 3D
+*   raylib [text] example - Draw 3d
 *
-*   Draw a 2D text in 3D space, each letter is drawn in a quad (or 2 quads if backface is set)
+*   NOTE: Draw a 2D text in 3D space, each letter is drawn in a quad (or 2 quads if backface is set)
 *   where the texture coodinates of each quad map to the texture coordinates of the glyphs
 *   inside the font texture.
-*    A more efficient approach, i believe, would be to render the text in a render texture and
-*    map that texture to a plane and render that, or maybe a shader but my method allows more
-*    flexibility...for example to change position of each letter individually to make somethink
-*    like a wavy text effect.
+*
+*   A more efficient approach, i believe, would be to render the text in a render texture and
+*   map that texture to a plane and render that, or maybe a shader but my method allows more
+*   flexibility...for example to change position of each letter individually to make somethink
+*   like a wavy text effect.
 *    
-*    Special thanks to:
+*   Special thanks to:
 *        @Nighten for the DrawTextStyle() code https://github.com/NightenDushi/Raylib_DrawTextStyle
 *        Chris Camacho (codifies - http://bedroomcoders.co.uk/) for the alpha discard shader
 *
-*   This example has been created using raylib 3.5 (www.raylib.com)
-*   raylib is licensed under an unmodified zlib/libpng license (View raylib.h for details)
+*   Example originally created with raylib 3.5, last time updated with raylib 4.0
 *
-*   Example contributed by Vlad Adrian (@Demizdor) and reviewed by Ramon Santamaria (@raysan5)
+*   Example contributed by Vlad Adrian (@demizdor) and reviewed by Ramon Santamaria (@raysan5)
 *
-*   Copyright (C) 2021 Vlad Adrian (@Demizdor - https://github.com/Demizdor)
+*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
+*   BSD-like license that allows static linking with closed source software
+*
+*   Copyright (c) 2021-2022 Vlad Adrian (@demizdor)
 *
 ********************************************************************************************/
 
@@ -47,7 +50,7 @@ bool SHOW_TEXT_BOUNDRY = false;
 //--------------------------------------------------------------------------------------
 
 // Configuration structure for waving the text
-typedef struct {
+typedef struct WaveTextConfig {
     Vector3 waveRange;
     Vector3 waveSpeed;
     Vector3 waveOffset;
@@ -57,19 +60,19 @@ typedef struct {
 // Module Functions Declaration
 //--------------------------------------------------------------------------------------
 // Draw a codepoint in 3D space
-void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint);
+static void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint);
 // Draw a 2D text in 3D space
-void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint);
+static void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint);
 // Measure a text in 3D. For some reason `MeasureTextEx()` just doesn't seem to work so i had to use this instead.
-Vector3 MeasureText3D(Font font, const char* text, float fontSize, float fontSpacing, float lineSpacing);
+static Vector3 MeasureText3D(Font font, const char *text, float fontSize, float fontSpacing, float lineSpacing);
 
 // Draw a 2D text in 3D space and wave the parts that start with `~~` and end with `~~`.
 // This is a modified version of the original code by @Nighten found here https://github.com/NightenDushi/Raylib_DrawTextStyle
-void DrawTextWave3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, WaveTextConfig* config, float time, Color tint);
+static void DrawTextWave3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, WaveTextConfig *config, float time, Color tint);
 // Measure a text in 3D ignoring the `~~` chars.
-Vector3 MeasureTextWave3D(Font font, const char* text, float fontSize, float fontSpacing, float lineSpacing);
+static Vector3 MeasureTextWave3D(Font font, const char *text, float fontSize, float fontSpacing, float lineSpacing);
 // Generates a nice color with a random hue
-Color GenerateRandomColor(float s, float v);
+static Color GenerateRandomColor(float s, float v);
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -141,22 +144,22 @@ int main(void)
         // Handle font files dropped
         if (IsFileDropped())
         {
-            int count = 0;
-            char **droppedFiles = GetDroppedFiles(&count);
+            FilePathList droppedFiles = LoadDroppedFiles();
 
             // NOTE: We only support first ttf file dropped
-            if (IsFileExtension(droppedFiles[0], ".ttf"))
+            if (IsFileExtension(droppedFiles.paths[0], ".ttf"))
             {
                 UnloadFont(font);
-                font = LoadFontEx(droppedFiles[0], fontSize, 0, 0);
+                font = LoadFontEx(droppedFiles.paths[0], fontSize, 0, 0);
             }
-            else if (IsFileExtension(droppedFiles[0], ".fnt"))
+            else if (IsFileExtension(droppedFiles.paths[0], ".fnt"))
             {
                 UnloadFont(font);
-                font = LoadFont(droppedFiles[0]);
+                font = LoadFont(droppedFiles.paths[0]);
                 fontSize = font.baseSize;
             }
-            ClearDroppedFiles();
+            
+            UnloadDroppedFiles(droppedFiles);    // Unload filepaths from memory
         }
 
         // Handle Events
@@ -445,7 +448,7 @@ int main(void)
 // Module Functions Definitions
 //--------------------------------------------------------------------------------------
 // Draw codepoint at specified position in 3D space
-void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint)
+static void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint)
 {
     // Character index position in sprite font
     // NOTE: In case a codepoint is not available in the font, index returned points to '?'
@@ -454,16 +457,16 @@ void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontS
 
     // Character destination rectangle on screen
     // NOTE: We consider charsPadding on drawing
-    position.x += (float)(font.chars[index].offsetX - font.charsPadding)/(float)font.baseSize*scale;
-    position.z += (float)(font.chars[index].offsetY - font.charsPadding)/(float)font.baseSize*scale;
+    position.x += (float)(font.glyphs[index].offsetX - font.glyphPadding)/(float)font.baseSize*scale;
+    position.z += (float)(font.glyphs[index].offsetY - font.glyphPadding)/(float)font.baseSize*scale;
 
     // Character source rectangle from font texture atlas
     // NOTE: We consider chars padding when drawing, it could be required for outline/glow shader effects
-    Rectangle srcRec = { font.recs[index].x - (float)font.charsPadding, font.recs[index].y - (float)font.charsPadding,
-                         font.recs[index].width + 2.0f*font.charsPadding, font.recs[index].height + 2.0f*font.charsPadding };
+    Rectangle srcRec = { font.recs[index].x - (float)font.glyphPadding, font.recs[index].y - (float)font.glyphPadding,
+                         font.recs[index].width + 2.0f*font.glyphPadding, font.recs[index].height + 2.0f*font.glyphPadding };
 
-    float width = (float)(font.recs[index].width + 2.0f*font.charsPadding)/(float)font.baseSize*scale;
-    float height = (float)(font.recs[index].height + 2.0f*font.charsPadding)/(float)font.baseSize*scale;
+    float width = (float)(font.recs[index].width + 2.0f*font.glyphPadding)/(float)font.baseSize*scale;
+    float height = (float)(font.recs[index].height + 2.0f*font.glyphPadding)/(float)font.baseSize*scale;
 
     if (font.texture.id > 0)
     {
@@ -477,16 +480,11 @@ void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontS
         const float tw = (srcRec.x+srcRec.width)/font.texture.width;
         const float th = (srcRec.y+srcRec.height)/font.texture.height;
 
-        if (SHOW_LETTER_BOUNDRY)
-            DrawCubeWiresV((Vector3){ position.x + width/2, position.y, position.z + height/2}, (Vector3){ width, LETTER_BOUNDRY_SIZE, height }, LETTER_BOUNDRY_COLOR);
+        if (SHOW_LETTER_BOUNDRY) DrawCubeWiresV((Vector3){ position.x + width/2, position.y, position.z + height/2}, (Vector3){ width, LETTER_BOUNDRY_SIZE, height }, LETTER_BOUNDRY_COLOR);
 
-#if defined(RAYLIB_NEW_RLGL)
         rlCheckRenderBatchLimit(4 + 4*backface);
         rlSetTexture(font.texture.id);
-#else
-        if (rlCheckBufferLimit(4 + 4*backface)) rlglDraw();
-        rlEnableTexture(font.texture.id);
-#endif
+
         rlPushMatrix();
             rlTranslatef(position.x, position.y, position.z);
 
@@ -512,15 +510,12 @@ void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontS
             rlEnd();
         rlPopMatrix();
 
-#if defined(RAYLIB_NEW_RLGL)
         rlSetTexture(0);
-#else
-        rlDisableTexture();
-#endif
     }
 }
 
-void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint)
+// Draw a 2D text in 3D space
+static void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint)
 {
     int length = TextLength(text);          // Total length in bytes of the text, scanned by codepoints in loop
 
@@ -554,15 +549,16 @@ void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, f
                 DrawTextCodepoint3D(font, codepoint, (Vector3){ position.x + textOffsetX, position.y, position.z + textOffsetY }, fontSize, backface, tint);
             }
 
-            if (font.chars[index].advanceX == 0) textOffsetX += (float)(font.recs[index].width + fontSpacing)/(float)font.baseSize*scale;
-            else textOffsetX += (float)(font.chars[index].advanceX + fontSpacing)/(float)font.baseSize*scale;
+            if (font.glyphs[index].advanceX == 0) textOffsetX += (float)(font.recs[index].width + fontSpacing)/(float)font.baseSize*scale;
+            else textOffsetX += (float)(font.glyphs[index].advanceX + fontSpacing)/(float)font.baseSize*scale;
         }
 
         i += codepointByteCount;   // Move text bytes counter to next codepoint
     }
 }
 
-Vector3 MeasureText3D(Font font, const char* text, float fontSize, float fontSpacing, float lineSpacing)
+// Measure a text in 3D. For some reason `MeasureTextEx()` just doesn't seem to work so i had to use this instead.
+static Vector3 MeasureText3D(Font font, const char* text, float fontSize, float fontSpacing, float lineSpacing)
 {
     int len = TextLength(text);
     int tempLen = 0;                // Used to count longer text line num chars
@@ -592,8 +588,8 @@ Vector3 MeasureText3D(Font font, const char* text, float fontSize, float fontSpa
 
         if (letter != '\n')
         {
-            if (font.chars[index].advanceX != 0) textWidth += (font.chars[index].advanceX+fontSpacing)/(float)font.baseSize*scale;
-            else textWidth += (font.recs[index].width + font.chars[index].offsetX)/(float)font.baseSize*scale;
+            if (font.glyphs[index].advanceX != 0) textWidth += (font.glyphs[index].advanceX+fontSpacing)/(float)font.baseSize*scale;
+            else textWidth += (font.recs[index].width + font.glyphs[index].offsetX)/(float)font.baseSize*scale;
         }
         else
         {
@@ -616,8 +612,9 @@ Vector3 MeasureText3D(Font font, const char* text, float fontSize, float fontSpa
     return vec;
 }
 
-
-void DrawTextWave3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, WaveTextConfig* config, float time, Color tint)
+// Draw a 2D text in 3D space and wave the parts that start with `~~` and end with `~~`.
+// This is a modified version of the original code by @Nighten found here https://github.com/NightenDushi/Raylib_DrawTextStyle
+static void DrawTextWave3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, WaveTextConfig* config, float time, Color tint)
 {
     int length = TextLength(text);          // Total length in bytes of the text, scanned by codepoints in loop
 
@@ -670,15 +667,16 @@ void DrawTextWave3D(Font font, const char *text, Vector3 position, float fontSiz
                 DrawTextCodepoint3D(font, codepoint, (Vector3){ pos.x + textOffsetX, pos.y, pos.z + textOffsetY }, fontSize, backface, tint);
             }
 
-            if (font.chars[index].advanceX == 0) textOffsetX += (float)(font.recs[index].width + fontSpacing)/(float)font.baseSize*scale;
-            else textOffsetX += (float)(font.chars[index].advanceX + fontSpacing)/(float)font.baseSize*scale;
+            if (font.glyphs[index].advanceX == 0) textOffsetX += (float)(font.recs[index].width + fontSpacing)/(float)font.baseSize*scale;
+            else textOffsetX += (float)(font.glyphs[index].advanceX + fontSpacing)/(float)font.baseSize*scale;
         }
 
         i += codepointByteCount;   // Move text bytes counter to next codepoint
     }
 }
 
-Vector3 MeasureTextWave3D(Font font, const char* text, float fontSize, float fontSpacing, float lineSpacing)
+// Measure a text in 3D ignoring the `~~` chars.
+static Vector3 MeasureTextWave3D(Font font, const char* text, float fontSize, float fontSpacing, float lineSpacing)
 {
     int len = TextLength(text);
     int tempLen = 0;                // Used to count longer text line num chars
@@ -714,8 +712,8 @@ Vector3 MeasureTextWave3D(Font font, const char* text, float fontSize, float fon
             }
             else
             {
-                if (font.chars[index].advanceX != 0) textWidth += (font.chars[index].advanceX+fontSpacing)/(float)font.baseSize*scale;
-                else textWidth += (font.recs[index].width + font.chars[index].offsetX)/(float)font.baseSize*scale;
+                if (font.glyphs[index].advanceX != 0) textWidth += (font.glyphs[index].advanceX+fontSpacing)/(float)font.baseSize*scale;
+                else textWidth += (font.recs[index].width + font.glyphs[index].offsetX)/(float)font.baseSize*scale;
             }
         }
         else
@@ -739,7 +737,8 @@ Vector3 MeasureTextWave3D(Font font, const char* text, float fontSize, float fon
     return vec;
 }
 
-Color GenerateRandomColor(float s, float v)
+// Generates a nice color with a random hue
+static Color GenerateRandomColor(float s, float v)
 {
     const float Phi = 0.618033988749895f; // Golden ratio conjugate
     float h = GetRandomValue(0, 360);

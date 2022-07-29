@@ -7,7 +7,7 @@
 *
 *   LICENSE: zlib/libpng
 *
-*   Copyright (c) 2017-2021 Ramon Santamaria (@raysan5)
+*   Copyright (c) 2017-2022 Ramon Santamaria (@raysan5)
 *
 *   This software is provided "as-is", without any express or implied warranty. In no event
 *   will the authors be held liable for any damages arising from the use of this software.
@@ -27,9 +27,17 @@
 **********************************************************************************************/
 
 //#define _GLFW_BUILD_DLL           // To build shared version
-//http://www.glfw.org/docs/latest/compile.html#compile_manual
+// Ref: http://www.glfw.org/docs/latest/compile.html#compile_manual
 
-#if defined(_WIN32)
+// Platform options:
+// _GLFW_WIN32      to use the Win32 API
+// _GLFW_X11        to use the X Window System
+// _GLFW_WAYLAND    to use the Wayland API (experimental and incomplete)
+// _GLFW_COCOA      to use the Cocoa frameworks
+// _GLFW_OSMESA     to use the OSMesa API (headless and non-interactive)
+// _GLFW_MIR        experimental, not supported at this moment
+
+#if defined(_WIN32) || defined(__CYGWIN__)
     #define _GLFW_WIN32
 #endif
 #if defined(__linux__)
@@ -49,8 +57,7 @@
     #define _WIN32_WINNT_WINXP      0x0501
 #endif
 
-// NOTE: _GLFW_MIR experimental platform not supported at this moment
-
+// Common modules to all platforms
 #include "external/glfw/src/context.c"
 #include "external/glfw/src/init.c"
 #include "external/glfw/src/input.c"
@@ -58,7 +65,7 @@
 #include "external/glfw/src/vulkan.c"
 #include "external/glfw/src/window.c"
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__CYGWIN__)
     #include "external/glfw/src/win32_init.c"
     #include "external/glfw/src/win32_joystick.c"
     #include "external/glfw/src/win32_monitor.c"
@@ -98,7 +105,6 @@
     #include "external/glfw/src/x11_monitor.c"
     #include "external/glfw/src/x11_window.c"
     #include "external/glfw/src/xkb_unicode.c"
-    // TODO: Joystick implementation
     #include "external/glfw/src/null_joystick.c"
     #include "external/glfw/src/posix_time.c"
     #include "external/glfw/src/posix_thread.c"

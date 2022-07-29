@@ -2,20 +2,25 @@
 *
 *   raylib [shapes] example - draw circle sector (with gui options)
 *
-*   This example has been created using raylib 2.5 (www.raylib.com)
-*   raylib is licensed under an unmodified zlib/libpng license (View raylib.h for details)
+*   Example originally created with raylib 2.5, last time updated with raylib 2.5
 *
 *   Example contributed by Vlad Adrian (@demizdor) and reviewed by Ramon Santamaria (@raysan5)
 *
-*   Copyright (c) 2018 Vlad Adrian (@demizdor) and Ramon Santamaria (@raysan5)
+*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
+*   BSD-like license that allows static linking with closed source software
+*
+*   Copyright (c) 2018-2022 Vlad Adrian (@demizdor) and Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 
 #include <raylib.h>
 
 #define RAYGUI_IMPLEMENTATION
-#include "extras/raygui.h"                 // Required for GUI controls
+#include "raygui.h"                 // Required for GUI controls
 
+//------------------------------------------------------------------------------------
+// Program main entry point
+//------------------------------------------------------------------------------------
 int main(void)
 {
     // Initialization
@@ -25,7 +30,7 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "raylib [shapes] example - draw circle sector");
 
-    Vector2 center = {(GetScreenWidth() - 300)/2, GetScreenHeight()/2 };
+    Vector2 center = {(GetScreenWidth() - 300)/2.0f, GetScreenHeight()/2.0f };
 
     float outerRadius = 180.0f;
     float startAngle = 0.0f;
@@ -53,8 +58,8 @@ int main(void)
             DrawLine(500, 0, 500, GetScreenHeight(), Fade(LIGHTGRAY, 0.6f));
             DrawRectangle(500, 0, GetScreenWidth() - 500, GetScreenHeight(), Fade(LIGHTGRAY, 0.3f));
 
-            DrawCircleSector(center, outerRadius, startAngle, endAngle, segments, Fade(MAROON, 0.3));
-            DrawCircleSectorLines(center, outerRadius, startAngle, endAngle, segments, Fade(MAROON, 0.6));
+            DrawCircleSector(center, outerRadius, startAngle, endAngle, segments, Fade(MAROON, 0.3f));
+            DrawCircleSectorLines(center, outerRadius, startAngle, endAngle, segments, Fade(MAROON, 0.6f));
 
             // Draw GUI controls
             //------------------------------------------------------------------------------
@@ -62,7 +67,7 @@ int main(void)
             endAngle = GuiSliderBar((Rectangle){ 600, 70, 120, 20}, "EndAngle", NULL, endAngle, 0, 720);
 
             outerRadius = GuiSliderBar((Rectangle){ 600, 140, 120, 20}, "Radius", NULL, outerRadius, 0, 200);
-            segments = GuiSliderBar((Rectangle){ 600, 170, 120, 20}, "Segments", NULL, segments, 0, 100);
+            segments = (int)GuiSliderBar((Rectangle){ 600, 170, 120, 20}, "Segments", NULL, (float)segments, 0, 100);
             //------------------------------------------------------------------------------
 
             minSegments = (int)ceilf((endAngle - startAngle) / 90);

@@ -2,17 +2,22 @@
 *
 *   raylib [textures] example - Procedural images generation
 *
-*   This example has been created using raylib 1.8 (www.raylib.com)
-*   raylib is licensed under an unmodified zlib/libpng license (View raylib.h for details)
+*   Example originally created with raylib 1.8, last time updated with raylib 1.8
 *
-*   Copyright (c) 2O17 Wilhem Barbier (@nounoursheureux)
+*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
+*   BSD-like license that allows static linking with closed source software
+*
+*   Copyright (c) 2O17-2022 Wilhem Barbier (@nounoursheureux) and Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 
 #include "raylib.h"
 
-#define NUM_TEXTURES  7      // Currently we have 7 generation algorithms
+#define NUM_TEXTURES  6      // Currently we have 7 generation algorithms
 
+//------------------------------------------------------------------------------------
+// Program main entry point
+//------------------------------------------------------------------------------------
 int main(void)
 {
     // Initialization
@@ -27,7 +32,6 @@ int main(void)
     Image radialGradient = GenImageGradientRadial(screenWidth, screenHeight, 0.0f, WHITE, BLACK);
     Image checked = GenImageChecked(screenWidth, screenHeight, 32, 32, RED, BLUE);
     Image whiteNoise = GenImageWhiteNoise(screenWidth, screenHeight, 0.5f);
-    Image perlinNoise = GenImagePerlinNoise(screenWidth, screenHeight, 50, 50, 4.0f);
     Image cellular = GenImageCellular(screenWidth, screenHeight, 32);
 
     Texture2D textures[NUM_TEXTURES] = { 0 };
@@ -37,8 +41,7 @@ int main(void)
     textures[2] = LoadTextureFromImage(radialGradient);
     textures[3] = LoadTextureFromImage(checked);
     textures[4] = LoadTextureFromImage(whiteNoise);
-    textures[5] = LoadTextureFromImage(perlinNoise);
-    textures[6] = LoadTextureFromImage(cellular);
+    textures[5] = LoadTextureFromImage(cellular);
 
     // Unload image data (CPU RAM)
     UnloadImage(verticalGradient);
@@ -46,7 +49,6 @@ int main(void)
     UnloadImage(radialGradient);
     UnloadImage(checked);
     UnloadImage(whiteNoise);
-    UnloadImage(perlinNoise);
     UnloadImage(cellular);
 
     int currentTexture = 0;
@@ -84,8 +86,7 @@ int main(void)
                 case 2: DrawText("RADIAL GRADIENT", 580, 10, 20, LIGHTGRAY); break;
                 case 3: DrawText("CHECKED", 680, 10, 20, RAYWHITE); break;
                 case 4: DrawText("WHITE NOISE", 640, 10, 20, RED); break;
-                case 5: DrawText("PERLIN NOISE", 630, 10, 20, RAYWHITE); break;
-                case 6: DrawText("CELLULAR", 670, 10, 20, RAYWHITE); break;
+                case 5: DrawText("CELLULAR", 670, 10, 20, RAYWHITE); break;
                 default: break;
             }
 

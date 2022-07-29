@@ -1,11 +1,13 @@
 /*******************************************************************************************
 *
-*   raylib [text] example - TTF loading and usage
+*   raylib [text] example - Font SDF loading
 *
-*   This example has been created using raylib 1.3.0 (www.raylib.com)
-*   raylib is licensed under an unmodified zlib/libpng license (View raylib.h for details)
+*   Example originally created with raylib 1.3, last time updated with raylib 4.0
 *
-*   Copyright (c) 2015 Ramon Santamaria (@raysan5)
+*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
+*   BSD-like license that allows static linking with closed source software
+*
+*   Copyright (c) 2015-2022 Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 
@@ -19,6 +21,9 @@
 
 #include <stdlib.h>
 
+//------------------------------------------------------------------------------------
+// Program main entry point
+//------------------------------------------------------------------------------------
 int main(void)
 {
     // Initialization
@@ -39,24 +44,24 @@ int main(void)
     // Default font generation from TTF font
     Font fontDefault = { 0 };
     fontDefault.baseSize = 16;
-    fontDefault.charsCount = 95;
+    fontDefault.glyphCount = 95;
 
     // Loading font data from memory data
-    // Parameters > font size: 16, no chars array provided (0), chars count: 95 (autogenerate chars array)
-    fontDefault.chars = LoadFontData(fileData, fileSize, 16, 0, 95, FONT_DEFAULT);
-    // Parameters > chars count: 95, font size: 16, chars padding in image: 4 px, pack method: 0 (default)
-    Image atlas = GenImageFontAtlas(fontDefault.chars, &fontDefault.recs, 95, 16, 4, 0);
+    // Parameters > font size: 16, no glyphs array provided (0), glyphs count: 95 (autogenerate chars array)
+    fontDefault.glyphs = LoadFontData(fileData, fileSize, 16, 0, 95, FONT_DEFAULT);
+    // Parameters > glyphs count: 95, font size: 16, glyphs padding in image: 4 px, pack method: 0 (default)
+    Image atlas = GenImageFontAtlas(fontDefault.glyphs, &fontDefault.recs, 95, 16, 4, 0);
     fontDefault.texture = LoadTextureFromImage(atlas);
     UnloadImage(atlas);
 
     // SDF font generation from TTF font
     Font fontSDF = { 0 };
     fontSDF.baseSize = 16;
-    fontSDF.charsCount = 95;
-    // Parameters > font size: 16, no chars array provided (0), chars count: 0 (defaults to 95)
-    fontSDF.chars = LoadFontData(fileData, fileSize, 16, 0, 0, FONT_SDF);
-    // Parameters > chars count: 95, font size: 16, chars padding in image: 0 px, pack method: 1 (Skyline algorythm)
-    atlas = GenImageFontAtlas(fontSDF.chars, &fontSDF.recs, 95, 16, 0, 1);
+    fontSDF.glyphCount = 95;
+    // Parameters > font size: 16, no glyphs array provided (0), glyphs count: 0 (defaults to 95)
+    fontSDF.glyphs = LoadFontData(fileData, fileSize, 16, 0, 0, FONT_SDF);
+    // Parameters > glyphs count: 95, font size: 16, glyphs padding in image: 0 px, pack method: 1 (Skyline algorythm)
+    atlas = GenImageFontAtlas(fontSDF.glyphs, &fontSDF.recs, 95, 16, 0, 1);
     fontSDF.texture = LoadTextureFromImage(atlas);
     UnloadImage(atlas);
 
@@ -64,7 +69,7 @@ int main(void)
 
     // Load SDF required shader (we use default vertex shader)
     Shader shader = LoadShader(0, TextFormat("resources/shaders/glsl%i/sdf.fs", GLSL_VERSION));
-    SetTextureFilter(fontSDF.texture, FILTER_BILINEAR);    // Required for SDF font
+    SetTextureFilter(fontSDF.texture, TEXTURE_FILTER_BILINEAR);    // Required for SDF font
 
     Vector2 fontPosition = { 40, screenHeight/2.0f - 50 };
     Vector2 textSize = { 0.0f, 0.0f };

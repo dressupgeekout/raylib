@@ -2,15 +2,20 @@
 *
 *   raylib [shapes] example - Draw basic shapes 2d (rectangle, circle, line...)
 *
-*   This example has been created using raylib 1.0 (www.raylib.com)
-*   raylib is licensed under an unmodified zlib/libpng license (View raylib.h for details)
+*   Example originally created with raylib 1.0, last time updated with raylib 4.0
 *
-*   Copyright (c) 2014 Ramon Santamaria (@raysan5)
+*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
+*   BSD-like license that allows static linking with closed source software
+*
+*   Copyright (c) 2014-2022 Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
 
 #include "raylib.h"
 
+//------------------------------------------------------------------------------------
+// Program main entry point
+//------------------------------------------------------------------------------------
 int main(void)
 {
     // Initialization
@@ -59,8 +64,8 @@ int main(void)
                               (Vector2){screenWidth/4.0f*3.0f + 20.0f, 230.0f}, DARKBLUE);
 
             // Polygon shapes and lines
-            DrawPoly((Vector2){screenWidth/4*3, 320}, 6, 80, 0, BROWN);
-            DrawPolyLinesEx((Vector2){screenWidth/4*3, 320}, 6, 80, 0, 6, BEIGE);
+            DrawPoly((Vector2){screenWidth/4.0f*3, 320}, 6, 80, 0, BROWN);
+            DrawPolyLinesEx((Vector2){screenWidth/4.0f*3, 320}, 6, 80, 0, 6, BEIGE);
 
             // NOTE: We draw all LINES based shapes together to optimize internal drawing,
             // this way, all LINES are rendered in a single draw pass
